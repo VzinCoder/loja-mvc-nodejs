@@ -3,33 +3,39 @@ const Cart = require('../models/cart')
 
 exports.getProduct = (req, res, next) => {
   const idProduct = req.params.idProduct
-  Product.findById(idProduct, product => {
-    res.render('shop/product-detail', {
-      product,
-      pageTitle: 'Product detail',
-      path: '/products'
-    });
-  })
+  Product.findByPk(idProduct)
+    .then((product) => {
+      res.render('shop/product-detail', {
+        product,
+        pageTitle: 'Product detail',
+        path: '/products'
+      });
+    })
+    .catch(() => console.log(err))
 }
 
 exports.getProducts = (req, res, next) => {
-  Product.fetchAll(products => {
-    res.render('shop/product-list', {
-      prods: products,
-      pageTitle: 'All Products',
-      path: '/products'
-    });
-  });
+    Product.findAll()
+    .then((products) => {
+      res.render('shop/product-list', {
+        prods: products,
+        pageTitle: 'All Products',
+        path: '/products'
+      })
+    })
+    .catch((err) => console.log(err))
 };
 
 exports.getIndex = (req, res, next) => {
-  Product.fetchAll(products => {
-    res.render('shop/index', {
-      prods: products,
-      pageTitle: 'Shop',
-      path: '/'
-    });
-  });
+  Product.findAll()
+    .then((products) => {
+      res.render('shop/index', {
+        prods: products,
+        pageTitle: 'Shop',
+        path: '/'
+      });
+    })
+    .catch((err) => console.log(err))
 };
 
 exports.getCart = (req, res, next) => {

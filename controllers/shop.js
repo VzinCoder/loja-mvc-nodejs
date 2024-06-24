@@ -1,5 +1,5 @@
+const OrderItem = require('../models/order-item');
 const Product = require('../models/product');
-const Cart = require('../models/cart')
 
 exports.getProduct = (req, res, next) => {
   const idProduct = req.params.idProduct
@@ -42,7 +42,6 @@ exports.getCart = (req, res, next) => {
   req.user.getCart()
     .then(cart => cart.getProducts())
     .then(productsCart => {
-      console.log(productsCart)
       res.render('shop/cart', {
         path: '/cart',
         pageTitle: 'Your Cart',
@@ -53,10 +52,43 @@ exports.getCart = (req, res, next) => {
 };
 
 exports.getOrders = (req, res, next) => {
-  res.render('shop/orders', {
-    path: '/orders',
-    pageTitle: 'Your Orders'
-  });
+ 
+  req.user.getOrders({include:Product}).then(orders => {
+    res.render('shop/orders', {
+      path: '/orders',
+      pageTitle: 'Your Orders',
+      orders
+    });
+  })
+};
+
+exports.postOrder = (req, res, next) => {
+  const user = req.user
+  let fetchedCart = null
+
+  const getProductsCart = cart => {
+    fetchedCart = cart
+    return fetchedCart.getProducts()
+  }
+
+  const addQuantityInOrder = p => {
+    p.orderItem = { quantity: p.cartItem.quantity }
+    return p
+  }
+
+  const createOrder = products => {
+    return user.createOrder()
+      .then(order => order.addProducts(products.map(addQuantityInOrder)))
+  }
+
+  const resetCart = () => fetchedCart.setProducts(null)
+
+  user.getCart()
+    .then(getProductsCart)
+    .then(createOrder)
+    .then(resetCart)
+    .then(() => res.redirect('/orders'))
+    .catch(console.log)
 };
 
 exports.getCheckout = (req, res, next) => {
